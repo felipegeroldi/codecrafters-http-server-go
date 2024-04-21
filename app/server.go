@@ -11,10 +11,10 @@ import (
 	"github.com/codecrafters-io/http-server-starter-go/app/my_http"
 )
 
-var directory string
+var directory *string
 
 func init() {
-	directory := flag.String("directory", "./", "Directory path for static files")
+	directory = flag.String("directory", "./", "Directory path for static files")
 	flag.Parse()
 }
 
@@ -59,7 +59,7 @@ func HandleConnection(conn net.Conn) {
 			os.Exit(1)
 		}
 	} else if strings.HasPrefix(req.Path, "/files/") {
-		if err := handler.Files(req, conn, directory); err != nil {
+		if err := handler.Files(req, conn, *directory); err != nil {
 			fmt.Println("Failed to write response, ", err.Error())
 			os.Exit(1)
 		}

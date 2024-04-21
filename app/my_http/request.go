@@ -77,18 +77,20 @@ func ParseData(conn net.Conn) *Request {
 		}
 
 		totalRecvBytes := len(bodyData)
-		for {
-			recvBytes, err := conn.Read(buf)
-			if err != nil {
-				fmt.Println("Error occurred while reading data from connection, ", err.Error())
-				os.Exit(1)
-			}
+		if totalRecvBytes < length {
+			for {
+				recvBytes, err := conn.Read(buf)
+				if err != nil {
+					fmt.Println("Error occurred while reading data from connection, ", err.Error())
+					os.Exit(1)
+				}
 
-			bodyData = append(bodyData, buf[:recvBytes]...)
+				bodyData = append(bodyData, buf[:recvBytes]...)
 
-			totalRecvBytes += recvBytes
-			if totalRecvBytes >= length {
-				break
+				totalRecvBytes += recvBytes
+				if totalRecvBytes >= length {
+					break
+				}
 			}
 		}
 

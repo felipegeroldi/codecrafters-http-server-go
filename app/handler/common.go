@@ -2,7 +2,9 @@ package handler
 
 import (
 	"fmt"
+	"io/fs"
 	"net"
+	"os"
 	"strings"
 
 	"github.com/codecrafters-io/http-server-starter-go/app/my_http"
@@ -29,7 +31,7 @@ func Echo(r *my_http.Request, c net.Conn) error {
 		Protocol:   "HTTP/1.1",
 		StatusCode: 200,
 		StatusMsg:  "OK",
-		Body:       body,
+		Body:       []byte(body),
 		Headers: map[string]string{
 			"Content-Type":   "text/plain",
 			"Content-Length": fmt.Sprintf("%d", len(body)),
@@ -52,7 +54,7 @@ func UserAgent(r *my_http.Request, c net.Conn) error {
 		Protocol:   "HTTP/1.1",
 		StatusCode: 200,
 		StatusMsg:  "OK",
-		Body:       body,
+		Body:       []byte(body),
 		Headers: map[string]string{
 			"Content-Type":   "text/plain",
 			"Content-Length": fmt.Sprintf("%d", len(body)),
@@ -60,4 +62,40 @@ func UserAgent(r *my_http.Request, c net.Conn) error {
 	}
 
 	return response.WriteTo(c)
+}
+
+func Files(r *my_http.Request, c net.Conn, dir []fs.DirEntry) error {
+	var fileFound bool
+	var body []byte
+	var err error
+
+	fileName := strings.Replace(r.Path, "/files/", "", -1)
+
+	for _, v := range dir {
+		if v.Name() == fileName {
+			fileFound = true
+
+			body, err = os.ReadFile(v.Name())
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if !fileFound {
+		return NotFound(c)
+	} else {
+		response := my_http.Response{
+			Protocol:   "HTTP/1.1",
+			StatusCode: 200,
+			StatusMsg:  "OK",
+			Body:       body,
+			Headers: map[string]string{
+				"Content-Type":   "application/octet-stream",
+				"Content-Length": fmt.Sprintf("%d", len(body)),
+			},
+		}
+
+		return response.WriteTo(c)
+	}
 }

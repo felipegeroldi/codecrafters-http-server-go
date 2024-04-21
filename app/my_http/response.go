@@ -11,7 +11,7 @@ type Response struct {
 	StatusCode int
 	StatusMsg  string
 	Headers    map[string]string
-	Body       string
+	Body       []byte
 }
 
 func (r *Response) WriteTo(conn net.Conn) error {
@@ -22,7 +22,7 @@ func (r *Response) WriteTo(conn net.Conn) error {
 		buf.WriteString(fmt.Sprintf("%s: %s\r\n", header, data))
 	}
 	buf.WriteString("\r\n")
-	buf.WriteString(r.Body)
+	buf.Write(r.Body)
 
 	if _, err := conn.Write(buf.Bytes()); err != nil {
 		return err

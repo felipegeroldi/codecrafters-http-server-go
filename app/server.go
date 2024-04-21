@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+
+	my_http "github.com/codecrafters-io/http-server-starter-go/app/http"
 	// Uncomment this block to pass the first stage
 	// "net"
 	// "os"
@@ -29,9 +31,25 @@ func main() {
 }
 
 func HandleConnection(conn net.Conn) {
-	response := "HTTP/1.1 200 OK\r\n\r\n"
-	if _, err := conn.Write([]byte(response)); err != nil {
-		fmt.Println("Failed to write response, ", err.Error())
+	buf := make([]byte, 1024)
+	if _, err := conn.Read(buf); err != nil {
+		fmt.Println("Error occurred while reading data from connection, ", err.Error())
 		os.Exit(1)
+	}
+
+	req := my_http.ParseData(buf)
+
+	if req.Path == "/" {
+		response := "HTTP/1.1 200 OK\r\n\r\n"
+		if _, err := conn.Write([]byte(response)); err != nil {
+			fmt.Println("Failed to write response, ", err.Error())
+			os.Exit(1)
+		}
+	} else {
+		response := "HTTP/1.1 404 Not Found\r\n\r\n"
+		if _, err := conn.Write([]byte(response)); err != nil {
+			fmt.Println("Failed to write response, ", err.Error())
+			os.Exit(1)
+		}
 	}
 }

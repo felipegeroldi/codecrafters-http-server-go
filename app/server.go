@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/codecrafters-io/http-server-starter-go/app/handler"
 	"github.com/codecrafters-io/http-server-starter-go/app/my_http"
 )
 
@@ -38,32 +39,22 @@ func HandleConnection(conn net.Conn) {
 	req := my_http.ParseData(buf)
 
 	if req.Path == "/" {
-		response := "HTTP/1.1 200 OK\r\n\r\n"
-		if _, err := conn.Write([]byte(response)); err != nil {
+		if err := handler.Index(conn); err != nil {
 			fmt.Println("Failed to write response, ", err.Error())
 			os.Exit(1)
 		}
 	} else if strings.HasPrefix(req.Path, "/echo/") {
-		body := strings.Replace(req.Path, "/echo/", "", -1)
-
-		response := my_http.Response{
-			Protocol:   "HTTP/1.1",
-			StatusCode: 200,
-			StatusMsg:  "OK",
-			Body:       body,
-			Headers: map[string]string{
-				"Content-Type":   "text/plain",
-				"Content-Length": fmt.Sprintf("%d", len(body)),
-			},
+		if err := handler.Echo(req, conn); err != nil {
+			fmt.Println("Failed to write response, ", err.Error())
+			os.Exit(1)
 		}
-
-		if err := response.WriteTo(conn); err != nil {
+	} else if req.Path == "/user-agent" {
+		if err := handler.UserAgent(req, conn); err != nil {
 			fmt.Println("Failed to write response, ", err.Error())
 			os.Exit(1)
 		}
 	} else {
-		response := "HTTP/1.1 404 Not Found\r\n\r\n"
-		if _, err := conn.Write([]byte(response)); err != nil {
+		if err := handler.NotFound(conn); err != nil {
 			fmt.Println("Failed to write response, ", err.Error())
 			os.Exit(1)
 		}

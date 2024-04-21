@@ -41,13 +41,7 @@ func main() {
 
 func HandleConnection(conn net.Conn) {
 	defer conn.Close()
-	buf := make([]byte, 1024)
-	if _, err := conn.Read(buf); err != nil {
-		fmt.Println("Error occurred while reading data from connection, ", err.Error())
-		os.Exit(1)
-	}
-
-	req := my_http.ParseData(buf)
+	req := my_http.ParseData(conn)
 
 	if req.Path == "/" {
 		if err := handler.Index(conn); err != nil {
@@ -60,9 +54,16 @@ func HandleConnection(conn net.Conn) {
 			os.Exit(1)
 		}
 	} else if strings.HasPrefix(req.Path, "/files/") {
-		if err := handler.Files(req, conn, *directory); err != nil {
-			fmt.Println("Failed to write response, ", err.Error())
-			os.Exit(1)
+		if req.Method == my_http.METHOD_GET {
+			if err := handler.GetFile(req, conn, *directory); err != nil {
+				fmt.Println("Failed to write response, ", err.Error())
+				os.Exit(1)
+			}
+		} else if req.Method == my_http.METHOD_POST {
+			if err := handler.PostFile(req, conn, *directory); err != nil {
+				fmt.Println("Failed to write response, ", err.Error())
+				os.Exit(1)
+			}
 		}
 	} else if req.Path == "/user-agent" {
 		if err := handler.UserAgent(req, conn); err != nil {
@@ -75,5 +76,4 @@ func HandleConnection(conn net.Conn) {
 			os.Exit(1)
 		}
 	}
-
 }

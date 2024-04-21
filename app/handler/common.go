@@ -24,6 +24,13 @@ func NotFound(c net.Conn) error {
 	return err
 }
 
+func Created(c net.Conn) error {
+	response := "HTTP/1.1 201 Created\r\n\r\n"
+	_, err := c.Write([]byte(response))
+
+	return err
+}
+
 func Echo(r *my_http.Request, c net.Conn) error {
 	body := strings.Replace(r.Path, "/echo/", "", -1)
 
@@ -64,7 +71,7 @@ func UserAgent(r *my_http.Request, c net.Conn) error {
 	return response.WriteTo(c)
 }
 
-func Files(r *my_http.Request, c net.Conn, dir string) error {
+func GetFile(r *my_http.Request, c net.Conn, dir string) error {
 	var fileFound bool
 	var body []byte
 
@@ -107,4 +114,26 @@ func Files(r *my_http.Request, c net.Conn, dir string) error {
 
 		return response.WriteTo(c)
 	}
+}
+
+func PostFile(r *my_http.Request, c net.Conn, dir string) error {
+	fileName := strings.Replace(r.Path, "/files/", "", -1)
+
+	if string(dir[len(dir)-1]) != "/" {
+		dir = dir + "/"
+	}
+
+	file, err := os.Create(dir + fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	if _, err := file.Write(r.Body); err != nil {
+		log.Fatal(err)
+	}
+
+	file.Sync()
+
+	return Created(c)
 }

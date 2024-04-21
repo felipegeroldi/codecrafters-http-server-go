@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/fs"
-	"log"
 	"net"
 	"os"
 	"strings"
@@ -13,17 +11,11 @@ import (
 	"github.com/codecrafters-io/http-server-starter-go/app/my_http"
 )
 
-var directory []fs.DirEntry
+var directory string
 
 func init() {
-	dirpath := flag.String("directory", "./", "Directory path for static files")
+	directory := flag.String("directory", "./", "Directory path for static files")
 	flag.Parse()
-
-	var err error
-	directory, err = os.ReadDir(*dirpath)
-	if err != nil {
-		log.Fatal("Failed to open static files directory, ", err)
-	}
 }
 
 func main() {

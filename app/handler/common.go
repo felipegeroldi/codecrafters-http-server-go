@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"io/fs"
+	"log"
 	"net"
 	"os"
 	"strings"
@@ -64,14 +64,19 @@ func UserAgent(r *my_http.Request, c net.Conn) error {
 	return response.WriteTo(c)
 }
 
-func Files(r *my_http.Request, c net.Conn, dir []fs.DirEntry) error {
+func Files(r *my_http.Request, c net.Conn, dir string) error {
 	var fileFound bool
 	var body []byte
+
 	var err error
+	directory, err := os.ReadDir(dir)
+	if err != nil {
+		log.Fatal("Failed to open static files directory, ", err)
+	}
 
 	fileName := strings.Replace(r.Path, "/files/", "", -1)
 
-	for _, v := range dir {
+	for _, v := range directory {
 		if v.Name() == fileName {
 			fileFound = true
 

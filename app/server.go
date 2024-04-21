@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 
-	my_http "github.com/codecrafters-io/http-server-starter-go/app/http"
-	// Uncomment this block to pass the first stage
-	// "net"
-	// "os"
+	"github.com/codecrafters-io/http-server-starter-go/app/my_http"
 )
 
 func main() {
@@ -42,6 +40,24 @@ func HandleConnection(conn net.Conn) {
 	if req.Path == "/" {
 		response := "HTTP/1.1 200 OK\r\n\r\n"
 		if _, err := conn.Write([]byte(response)); err != nil {
+			fmt.Println("Failed to write response, ", err.Error())
+			os.Exit(1)
+		}
+	} else if strings.HasPrefix(req.Path, "/echo/") {
+		body := strings.Replace(req.Path, "/echo/", "", -1)
+
+		response := my_http.Response{
+			Protocol:   "HTTP/1.1",
+			StatusCode: 200,
+			StatusMsg:  "OK",
+			Body:       body,
+			Headers: map[string]string{
+				"Content-Type":   "text/plain",
+				"Content-Length": fmt.Sprintf("%d", len(body)),
+			},
+		}
+
+		if err := response.WriteTo(conn); err != nil {
 			fmt.Println("Failed to write response, ", err.Error())
 			os.Exit(1)
 		}

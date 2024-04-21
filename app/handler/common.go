@@ -69,6 +69,10 @@ func Files(r *my_http.Request, c net.Conn, dir string) error {
 	var body []byte
 
 	var err error
+	if string(dir[len(dir)-1]) != "/" {
+		dir = dir + "/"
+	}
+
 	directory, err := os.ReadDir(dir)
 	if err != nil {
 		log.Fatal("Failed to open static files directory, ", err)
@@ -80,7 +84,7 @@ func Files(r *my_http.Request, c net.Conn, dir string) error {
 		if v.Name() == fileName {
 			fileFound = true
 
-			body, err = os.ReadFile(v.Name())
+			body, err = os.ReadFile(dir + v.Name())
 			if err != nil {
 				return err
 			}

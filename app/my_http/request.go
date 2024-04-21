@@ -34,14 +34,14 @@ func ParseData(conn net.Conn) *Request {
 	bodyData := make([]byte, 0)
 
 	for {
-		_, err := conn.Read(buf)
+		recvBytes, err := conn.Read(buf)
 		if err != nil {
 			fmt.Println("Error occurred while reading data from connection, ", err.Error())
 			os.Exit(1)
 		}
 
 		if bytes.Contains(buf, []byte("\r\n\r\n")) {
-			data := bytes.Split(buf, []byte("\r\n\r\n"))
+			data := bytes.Split(buf[:recvBytes], []byte("\r\n\r\n"))
 			headerData = append(headerData, data[0]...)
 			bodyData = append(bodyData, data[1]...)
 
@@ -76,7 +76,7 @@ func ParseData(conn net.Conn) *Request {
 			log.Fatal(err)
 		}
 
-		var totalRecvBytes int = len(bodyData)
+		totalRecvBytes := len(bodyData)
 		for {
 			recvBytes, err := conn.Read(buf)
 			if err != nil {
